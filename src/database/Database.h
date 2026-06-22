@@ -1,11 +1,11 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
+#include "../hash/HashTable.h"
 class Database
 {
 private:
-    std::unordered_map<std::string, std::string> data_;
+    HashTable<std::string,std::string> data_;
 public:
     void set(const std::string& key,const std::string& value);
     std::string get(const std::string& key) const;
