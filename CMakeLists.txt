@@ -5,5 +5,11 @@ project(redis_clone)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(redis_clone
+
     src/main.cpp
+
+    src/server/Server.cpp
+    src/database/Database.cpp
+    src/parser/CommandParser.cpp
+    src/client/ClientHandler.cpp
 )
