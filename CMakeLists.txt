@@ -14,4 +14,5 @@ add_executable(redis_clone
     src/client/ClientHandler.cpp
     src/persistence/PersistenceManager.cpp
     src/threadpool/ThreadPool.cpp
+    src/lru/LRUCache.cpp
 )

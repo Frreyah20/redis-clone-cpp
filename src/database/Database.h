@@ -6,6 +6,7 @@
 #include <mutex>
 #include <vector>
 #include <utility>
+#include "../lru/LRUCache.h"
 
 class Database
 {
@@ -15,6 +16,12 @@ private:
     HashTable<std::string,std::chrono::system_clock::time_point> expirations_;
     bool isExpiredUnlocked(const std::string& key);
     void removeExpiredKeyUnlocked(const std::string& key);
+    LRUCache lru_;
+    size_t memory_used_ = 0;
+    size_t max_memory_ = 1024 * 1024; // 1 MB default
+    void evictIfNeeded();
+    size_t getMaxMemory() const;
+
 public:
     void set(const std::string& key,const std::string& value);
     std::string get(const std::string& key);
@@ -30,4 +37,6 @@ public:
     void restoreKey(const std::string& key, const std::string& value);
     void restoreExpiration(const std::string& key, const std::chrono::system_clock::time_point& expiry);
     bool getExpiration(const std::string& key, std::chrono::system_clock::time_point& expiry);
+    void setMaxMemory(size_t bytes);
+
 };

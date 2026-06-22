@@ -1,9 +1,20 @@
 #include "Database.h"
+#include <iostream>
 
 void Database::set(const std::string& key, const std::string& value)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    auto existing = data_.find(key);
+    if(existing)
+    {
+        memory_used_ -= key.size();
+        memory_used_ -= existing->size();
+    }
     data_.insert(key, value);
+    memory_used_ += key.size();
+    memory_used_ += value.size();
+    lru_.touch(key);
+    evictIfNeeded();
 }
 
 std::string Database::get(const std::string& key)
@@ -19,6 +30,7 @@ std::string Database::get(const std::string& key)
     {
         return "";
     }
+    lru_.touch(key);
     return *value;
 }
 
@@ -36,7 +48,18 @@ bool Database::exists(const std::string& key)
 bool Database::del(const std::string& key)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    return data_.erase(key);
+    auto value = data_.find(key);
+    if(value)
+    {
+        memory_used_ -= key.size();
+        memory_used_ -= value->size();
+    }
+    bool erased = data_.erase(key);
+    if(erased)
+    {
+        lru_.remove(key);
+    }
+    return erased;
 }
 
 bool Database::expire(const std::string& key,int seconds)
@@ -112,8 +135,15 @@ bool Database::isExpiredUnlocked(const std::string& key)
 
 void Database::removeExpiredKeyUnlocked(const std::string& key)
 {
+    auto value = data_.find(key);
+    if(value)
+    {
+        memory_used_ -= key.size();
+        memory_used_ -= value->size();
+    }
     data_.erase(key);
     expirations_.erase(key);
+    lru_.remove(key);
 }
 
 std::vector<std::pair<std::string,std::string>>
@@ -157,4 +187,39 @@ bool Database::getExpiration(const std::string& key, std::chrono::system_clock::
     }
     expiry = *value;
     return true;
+}
+
+void Database::setMaxMemory(size_t bytes)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    max_memory_ = bytes;
+}
+
+void Database::evictIfNeeded()
+{
+    while(memory_used_ > max_memory_)
+    {
+        std::string victim = lru_.evict();
+        if(victim.empty())
+        {
+            return;
+        }
+        auto value = data_.find(victim);
+        if(value)
+        {
+            memory_used_ -= victim.size();
+            memory_used_ -= value->size();
+        }
+        data_.erase(victim);
+        expirations_.erase(victim);
+        std::cout
+            << "Evicted key: "
+            << victim
+            << std::endl;
+    }
+} 
+
+size_t Database::getMaxMemory() const
+{
+    return max_memory_;
 }

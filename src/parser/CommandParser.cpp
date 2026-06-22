@@ -74,5 +74,12 @@ std::string CommandParser::execute(const std::string& command, Database& db, Per
         bool success = persistence.saveSnapshot(db, "snapshot.rdb");
         return success ? "OK\n" : "ERROR: Save failed\n";
     }  
+    else if(cmd == "MAXMEMORY")
+    {
+        size_t bytes;
+        ss >> bytes;
+        db.setMaxMemory(bytes);
+        return "OK\n";
+    }
     return "ERROR: Unknown command\n";
 } 
