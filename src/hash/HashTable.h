@@ -33,7 +33,7 @@ public:
     size_t size() const;
     double loadFactor() const;
     size_t bucketCount() const;
-
+    std::vector<K> keys() const;
     
 };
 

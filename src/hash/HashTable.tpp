@@ -163,3 +163,20 @@ size_t HashTable<K,V>::bucketCount() const
 {
     return bucket_count_;
 }
+
+template<typename K, typename V>
+std::vector<K> HashTable<K, V>::keys() const
+{
+    std::vector<K> result;
+    for (Node* head : buckets_)
+    {
+        Node* current = head;
+        while (current)
+        {
+            result.push_back(current->key);
+            current = current->next;
+        }
+    }
+
+    return result;
+}

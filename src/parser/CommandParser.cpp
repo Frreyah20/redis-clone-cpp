@@ -12,12 +12,23 @@ std::string CommandParser::execute(const std::string& command, Database& db)
     {
         return "PONG\n";
     }
-    else if (cmd == "SET")
+    else if(cmd == "SET")
     {
         std::string key;
         std::string value;
         ss >> key >> value;
         db.set(key, value);
+        std::string option;
+        if(ss >> option)
+        {
+            if(option == "EX")
+            {
+                int seconds;
+                ss >> seconds;
+                db.expire(key, seconds);
+            }
+        }
+
         return "OK\n";
     }
     else if (cmd == "GET")
@@ -36,13 +47,24 @@ std::string CommandParser::execute(const std::string& command, Database& db)
         ss >> key;
         return db.exists(key) ? "1\n" : "0\n";
     }
-
     else if (cmd == "DEL")
     {
         std::string key;
         ss >> key;
         return db.del(key) ? "1\n" : "0\n";
     }
-
+    else if (cmd == "EXPIRE")
+    {
+        std::string key;
+        int seconds;
+        ss >> key >> seconds;
+        return db.expire(key, seconds) ? "1\n" : "0\n";
+    }
+    else if(cmd == "TTL")
+    {
+        std::string key;
+        ss >> key;
+        return std::to_string(db.ttl(key)) + "\n";
+    }
     return "ERROR: Unknown command\n";
 }

@@ -6,12 +6,25 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <thread>
+#include <chrono>
+
 
 void Server::start()
 {
     Database db;
     CommandParser parser;
     ClientHandler handler;
+    std::thread cleanup_thread([&db]()
+    {
+        while(true)
+        {
+            db.cleanupExpiredKeys();
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+    });
+    cleanup_thread.detach();
+
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0)
     {
