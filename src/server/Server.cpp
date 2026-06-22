@@ -3,6 +3,7 @@
 #include "../parser/CommandParser.h"
 #include "../client/ClientHandler.h"
 #include "../persistence/PersistenceManager.h"
+#include "../threadpool/ThreadPool.h"
 #include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -17,6 +18,7 @@ void Server::start()
     Database db;
     CommandParser parser;
     ClientHandler handler;
+    ThreadPool pool(4, db, parser, handler,persistence);
     persistence.loadSnapshot(db, "snapshot.rdb");
     std::thread cleanup_thread([&db]()
     {
@@ -62,6 +64,6 @@ void Server::start()
             continue;
         }
         std::cout << "Client connected\n";
-        handler.handleClient(client_fd, db,parser,persistence);
+        pool.enqueueClient(client_fd);
     }
 }
