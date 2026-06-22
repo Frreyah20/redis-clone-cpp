@@ -2,33 +2,20 @@
 
 A Redis-inspired in-memory key-value database built from scratch in C++.
 
-This project is designed to explore the core systems concepts behind modern in-memory databases, including networking, storage engines, custom data structures, persistence, concurrency, caching, and performance engineering.
+This project implements the core components of a modern in-memory database, including a custom storage engine, hash table implementation, key expiration, persistence, concurrent client handling, memory eviction policies, and performance benchmarking.
 
-The goal is not to reproduce Redis feature-for-feature, but to understand and implement the fundamental components that make high-performance key-value stores possible.
-
----
-
-## Project Goals
-
-This project focuses on:
-
-* Systems Programming
-* Network Programming
-* Database Internals
-* Memory Management
-* Concurrent Programming
-* Performance Engineering
-* Data Structure Design
+The objective of the project is to understand and implement the fundamental systems concepts that power high-performance key-value stores such as Redis.
 
 ---
 
-## Current Features
+## Features
 
 ### Networking
 
-* TCP server implementation
+* TCP server implementation using BSD sockets
 * Client-server communication
 * Command parsing and dispatching
+* Concurrent client handling using a thread pool
 
 ### Key-Value Operations
 
@@ -38,11 +25,94 @@ This project focuses on:
 * `DEL`
 * `EXISTS`
 
+### Storage Engine
+
+* In-memory key-value database
+* Modular storage engine design
+* Efficient lookup and update operations
+
+### Custom Hash Table
+
+* Bucket-based hash table implementation
+* Collision handling through chaining
+* Dynamic resizing and rehashing
+* Average-case O(1) insert, lookup, and delete operations
+
+### TTL Expiration Engine
+
+* Key expiration support
+* Lazy expiration during reads
+* Background cleanup thread
+* TTL management and automatic key removal
+
+### Persistence
+
+* Snapshot-based persistence
+* Binary serialization and deserialization
+* Database recovery on startup
+* Durable storage across server restarts
+
+### LRU Eviction Engine
+
+* Configurable memory limits
+* Least Recently Used (LRU) eviction policy
+* O(1) access and eviction operations
+* Doubly linked list and hash table based design
+
+### Concurrency
+
+* Thread pool architecture
+* Task queue based request processing
+* Synchronization using mutexes and condition variables
+* Safe concurrent access to shared data structures
+
+### Benchmarking
+
+* Throughput measurement
+* Latency analysis
+* Multi-client performance evaluation
+* Scalability testing under concurrent workloads
+
+---
+
+## Architecture
+
+```text
+                     Client Connections
+                             │
+                             ▼
+                      TCP Server
+                             │
+                             ▼
+                      Command Parser
+                             │
+                             ▼
+                      Storage Engine
+                   ┌─────────┼─────────┐
+                   │         │         │
+                   ▼         ▼         ▼
+             Hash Table   TTL Engine  LRU Cache
+                   │
+                   ▼
+              Persistence
+                   │
+                   ▼
+              Snapshot File
+
+          Concurrent Request Processing
+                   │
+                   ▼
+               Thread Pool
+```
+
 ---
 
 ## Example Usage
 
 ```text
+PING
+PONG
+
 SET name frreyah
 OK
 
@@ -56,39 +126,15 @@ DEL name
 OK
 ```
 
----
-
-## Project Architecture
+### TTL Operations
 
 ```text
-Client
-   │
-   ▼
-TCP Server
-   │
-   ▼
-Command Parser
-   │
-   ▼
-Storage Engine
-   │
-   ▼
-Key-Value Database
+SET session abc EX 60
+OK
+
+TTL session
+59
 ```
-
----
-
-## Planned System Components
-
-The project is being developed incrementally to explore the major building blocks of modern in-memory databases:
-
-* Storage Engine
-* Custom Hash Table
-* TTL Expiration Engine
-* Persistence Layer
-* Concurrent Client Handling
-* LRU Eviction Engine
-* Benchmarking Framework
 
 ---
 
@@ -117,27 +163,34 @@ make
 
 ---
 
-## Technologies
+## Technologies Used
 
 * C++
 * CMake
 * BSD Sockets
+* Multithreading
 * STL
+* File I/O
+* Binary Serialization
 
 ---
 
-## Learning Outcomes
+## Concepts Explored
 
-This project is intended to provide practical experience with:
+This project provides hands-on experience with:
 
-* Socket Programming
-* Client-Server Architectures
-* Database Storage Engines
+* Systems Programming
+* Network Programming
+* Database Internals
+* Storage Engine Design
 * Custom Data Structures
-* Serialization and Persistence
+* Memory Management
 * Concurrent Programming
+* Thread Pools
+* Synchronization Primitives
+* Persistence and Recovery
 * Cache Design
-* Systems Performance Analysis
+* Performance Engineering
 
 ---
 
@@ -146,37 +199,32 @@ This project is intended to provide practical experience with:
 ```text
 redis-clone-cpp/
 ├── src/
+├── include/
 ├── build/
+├── benchmarks/
 ├── CMakeLists.txt
 └── README.md
 ```
 
 ---
 
-## Future Architecture
+## Performance
 
-```text
-Client
-   │
-   ▼
-TCP Server
-   │
-   ▼
-Command Parser
-   │
-   ▼
-Storage Engine
-   ├── Custom Hash Table
-   ├── TTL Manager
-   ├── Persistence Layer
-   └── LRU Cache
-           │
-           ▼
-      Thread Pool
-           │
-           ▼
-      Benchmark Suite
-```
+The project includes a benchmarking framework for evaluating:
+
+* Request throughput
+* Latency under concurrent load
+* Scalability with increasing client counts
+* Storage engine performance
+* Hash table performance
+
+Benchmark results and performance analysis are available in the repository documentation.
+
+---
+
+## Motivation
+
+Redis is widely used as an in-memory database, cache, and message broker. Rebuilding its core components from scratch provides practical insight into how high-performance backend systems manage memory, persistence, networking, concurrency, and data structures at scale.
 
 ---
 
