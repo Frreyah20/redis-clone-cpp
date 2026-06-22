@@ -1,77 +1,92 @@
 # Redis Clone (C++)
 
-A Redis-inspired in-memory key-value database built from scratch in C++.
+A Redis-inspired in-memory key-value database built from scratch in modern C++.
 
-This project implements the core components of a modern in-memory database, including a custom storage engine, hash table implementation, key expiration, persistence, concurrent client handling, memory eviction policies, and performance benchmarking.
-
-The objective of the project is to understand and implement the fundamental systems concepts that power high-performance key-value stores such as Redis.
+This project implements many of the core systems that power high-performance databases and caches, including a custom hash table, key expiration engine, persistence layer, thread-pool based concurrency, LRU eviction, and performance benchmarking. The goal was to explore database internals, networking, concurrent programming, and systems design through a ground-up implementation.
 
 ---
 
 ## Features
 
-### Networking
+### Networking & Command Processing
 
-* TCP server implementation using BSD sockets
-* Client-server communication
+* TCP server built using BSD sockets
+* Client-server architecture
 * Command parsing and dispatching
-* Concurrent client handling using a thread pool
+* Persistent client connections
+* Concurrent request processing using a thread pool
 
-### Key-Value Operations
+### Supported Commands
 
-* `PING`
-* `SET`
-* `GET`
-* `DEL`
-* `EXISTS`
+```text
+PING
+SET key value
+GET key
+DEL key
+EXISTS key
+
+SET key value EX seconds
+EXPIRE key seconds
+TTL key
+
+SAVE
+MAXMEMORY bytes
+```
 
 ### Storage Engine
 
 * In-memory key-value database
-* Modular storage engine design
-* Efficient lookup and update operations
+* Modular database architecture
+* Efficient key lookup and updates
 
 ### Custom Hash Table
 
-* Bucket-based hash table implementation
-* Collision handling through chaining
-* Dynamic resizing and rehashing
-* Average-case O(1) insert, lookup, and delete operations
+Implemented from scratch without using `std::unordered_map`.
 
-### TTL Expiration Engine
+Features:
+
+* Bucket-based storage
+* Separate chaining for collision resolution
+* Dynamic resizing and rehashing
+* Average-case O(1) insertion, lookup, and deletion
+
+### TTL Expiration System
 
 * Key expiration support
 * Lazy expiration during reads
 * Background cleanup thread
-* TTL management and automatic key removal
+* Automatic removal of expired entries
 
-### Persistence
+### Persistence Engine
 
 * Snapshot-based persistence
-* Binary serialization and deserialization
+* Binary serialization format
 * Database recovery on startup
 * Durable storage across server restarts
+
+### Concurrent Client Handling
+
+* Producer-consumer architecture
+* Thread pool based request execution
+* Task queue implementation
+* Synchronization using mutexes and condition variables
+* Safe concurrent access to shared state
 
 ### LRU Eviction Engine
 
 * Configurable memory limits
-* Least Recently Used (LRU) eviction policy
-* O(1) access and eviction operations
-* Doubly linked list and hash table based design
+* Least Recently Used eviction policy
+* O(1) access tracking
+* O(1) eviction operations
+* Hash map + doubly linked list design
 
-### Concurrency
+### Benchmarking Framework
 
-* Thread pool architecture
-* Task queue based request processing
-* Synchronization using mutexes and condition variables
-* Safe concurrent access to shared data structures
-
-### Benchmarking
-
+* Custom benchmark client
 * Throughput measurement
 * Latency analysis
-* Multi-client performance evaluation
-* Scalability testing under concurrent workloads
+* Multi-client scalability testing
+* Performance comparison across thread pool configurations
 
 ---
 
@@ -87,27 +102,29 @@ The objective of the project is to understand and implement the fundamental syst
                       Command Parser
                              │
                              ▼
-                      Storage Engine
-                   ┌─────────┼─────────┐
-                   │         │         │
-                   ▼         ▼         ▼
-             Hash Table   TTL Engine  LRU Cache
-                   │
-                   ▼
-              Persistence
-                   │
-                   ▼
-              Snapshot File
+                         Database
+                  ┌────────┼────────┐
+                  │        │        │
+                  ▼        ▼        ▼
+            Hash Table    TTL      LRU
+                  │
+                  ▼
+             Persistence
+                  │
+                  ▼
+            Snapshot File
 
-          Concurrent Request Processing
-                   │
-                   ▼
-               Thread Pool
+         Concurrent Request Processing
+                  │
+                  ▼
+              Thread Pool
 ```
 
 ---
 
 ## Example Usage
+
+### Basic Operations
 
 ```text
 PING
@@ -123,10 +140,10 @@ EXISTS name
 1
 
 DEL name
-OK
+1
 ```
 
-### TTL Operations
+### Expiration
 
 ```text
 SET session abc EX 60
@@ -136,13 +153,55 @@ TTL session
 59
 ```
 
+### Persistence
+
+```text
+SAVE
+OK
+```
+
+### Memory Management
+
+```text
+MAXMEMORY 1048576
+OK
+```
+
 ---
 
-## Build Instructions
+## Performance
+
+### Single Client Performance
+
+| Operation | Throughput |
+| --------- | ---------- |
+| PING      | ~13k req/s |
+| SET       | ~11k req/s |
+| GET       | ~10k req/s |
+
+### Concurrent Throughput
+
+| Workers | Clients |  Throughput |
+| ------- | ------: | ----------: |
+| 4       |     100 |  ~33k req/s |
+| 8       |     100 | ~128k req/s |
+
+### Key Findings
+
+* Throughput scaled significantly with increased worker pool size.
+* The system achieved over **128k requests/second** under concurrent workloads.
+* Benchmarking identified worker pool capacity as a major scalability bottleneck.
+* Performance analysis was conducted using a custom benchmark suite.
+
+Detailed results are available in `BENCHMARK.md`.
+
+---
+
+## Building
 
 ### Prerequisites
 
-* C++17 or newer
+* C++17
 * CMake
 * Make
 
@@ -155,79 +214,71 @@ cmake ..
 make
 ```
 
-### Run
+### Run Server
 
 ```bash
 ./redis_clone
 ```
 
----
+### Run Benchmark
 
-## Technologies Used
-
-* C++
-* CMake
-* BSD Sockets
-* Multithreading
-* STL
-* File I/O
-* Binary Serialization
-
----
-
-## Concepts Explored
-
-This project provides hands-on experience with:
-
-* Systems Programming
-* Network Programming
-* Database Internals
-* Storage Engine Design
-* Custom Data Structures
-* Memory Management
-* Concurrent Programming
-* Thread Pools
-* Synchronization Primitives
-* Persistence and Recovery
-* Cache Design
-* Performance Engineering
-
----
-
-## Repository Structure
-
-```text
-redis-clone-cpp/
-├── src/
-├── include/
-├── build/
-├── benchmarks/
-├── CMakeLists.txt
-└── README.md
+```bash
+./benchmark
 ```
 
 ---
 
-## Performance
+## Project Structure
 
-The project includes a benchmarking framework for evaluating:
-
-* Request throughput
-* Latency under concurrent load
-* Scalability with increasing client counts
-* Storage engine performance
-* Hash table performance
-
-Benchmark results and performance analysis are available in the repository documentation.
+```text
+redis_clone/
+├── src/
+│   ├── client/
+│   ├── database/
+│   ├── hash/
+│   ├── lru/
+│   ├── parser/
+│   ├── persistence/
+│   ├── server/
+│   ├── threadpool/
+│   └── benchmark/
+├── CMakeLists.txt
+├── README.md
+└── BENCHMARK.md
+```
 
 ---
 
-## Motivation
+## Systems Concepts Explored
 
-Redis is widely used as an in-memory database, cache, and message broker. Rebuilding its core components from scratch provides practical insight into how high-performance backend systems manage memory, persistence, networking, concurrency, and data structures at scale.
+* TCP/IP Networking
+* BSD Sockets
+* Client-Server Architecture
+* Custom Data Structures
+* Hash Table Design
+* Memory Management
+* Database Internals
+* Serialization & Recovery
+* Thread Pools
+* Producer-Consumer Pattern
+* Synchronization Primitives
+* Cache Eviction Policies
+* Performance Engineering
+* Scalability Analysis
+
+---
+
+## Future Improvements
+
+* RESP protocol compatibility
+* Incremental persistence
+* Replication support
+* Publish/Subscribe messaging
+* Event-driven networking using epoll
+* Clustered deployment
 
 ---
 
 ## License
 
-This project is developed for educational purposes and systems programming practice.
+This project was developed for educational purposes to explore systems programming, database internals, and concurrent software design.
