@@ -16,3 +16,7 @@ add_executable(redis_clone
     src/threadpool/ThreadPool.cpp
     src/lru/LRUCache.cpp
 )
+add_executable(
+    benchmark
+    src/benchmark/BenchMark.cpp
+)

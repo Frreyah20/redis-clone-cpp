@@ -34,7 +34,6 @@ ThreadPool::~ThreadPool()
 void ThreadPool::enqueueClient(int client_fd)
 {
     {
-        std::cout << "Client queued\n";
         std::lock_guard<std::mutex> lock(mutex_);
         client_queue_.push(client_fd);
     }
@@ -53,7 +52,6 @@ void ThreadPool::workerThread()
             {
                 return;
             }
-            std::cout << "Worker picked client\n";
             client_fd = client_queue_.front();
             client_queue_.pop();
         }

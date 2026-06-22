@@ -18,7 +18,7 @@ void Server::start()
     Database db;
     CommandParser parser;
     ClientHandler handler;
-    ThreadPool pool(4, db, parser, handler,persistence);
+    ThreadPool pool(8, db, parser, handler,persistence);
     persistence.loadSnapshot(db, "snapshot.rdb");
     std::thread cleanup_thread([&db]()
     {
