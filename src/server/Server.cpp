@@ -2,6 +2,7 @@
 #include "../database/Database.h"
 #include "../parser/CommandParser.h"
 #include "../client/ClientHandler.h"
+#include "../persistence/PersistenceManager.h"
 #include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -12,9 +13,11 @@
 
 void Server::start()
 {
+    PersistenceManager persistence;
     Database db;
     CommandParser parser;
     ClientHandler handler;
+    persistence.loadSnapshot(db, "snapshot.rdb");
     std::thread cleanup_thread([&db]()
     {
         while(true)
@@ -59,6 +62,6 @@ void Server::start()
             continue;
         }
         std::cout << "Client connected\n";
-        handler.handleClient(client_fd, db,parser);
+        handler.handleClient(client_fd, db,parser,persistence);
     }
 }

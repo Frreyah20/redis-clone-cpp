@@ -34,6 +34,7 @@ public:
     double loadFactor() const;
     size_t bucketCount() const;
     std::vector<K> keys() const;
+    std::vector<std::pair<K,V>> items() const;
     
 };
 

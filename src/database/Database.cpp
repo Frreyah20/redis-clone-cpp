@@ -46,7 +46,7 @@ bool Database::expire(const std::string& key,int seconds)
     {
         return false;
     }
-    auto expiry_time = std::chrono::steady_clock::now() + std::chrono::seconds(seconds);
+    auto expiry_time = std::chrono::system_clock::now() + std::chrono::seconds(seconds);
     expirations_.insert(key,expiry_time);
 
     return true;
@@ -70,7 +70,7 @@ long Database::ttl(const std::string& key)
         return -1;
     }
     auto remaining = std::chrono::duration_cast<std::chrono::seconds>(
-            *expiry - std::chrono::steady_clock::now());
+            *expiry - std::chrono::system_clock::now());
     return remaining.count();
 }
 
@@ -107,11 +107,54 @@ bool Database::isExpiredUnlocked(const std::string& key)
     {
         return false;
     }
-    return std::chrono::steady_clock::now() >= *expiry;
+    return std::chrono::system_clock::now() >= *expiry;
 }
 
 void Database::removeExpiredKeyUnlocked(const std::string& key)
 {
     data_.erase(key);
     expirations_.erase(key);
+}
+
+std::vector<std::pair<std::string,std::string>>
+Database::getAllData()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return data_.items();
+}
+
+std::vector<
+    std::pair<
+        std::string,
+        std::chrono::system_clock::time_point
+    >
+>
+Database::getAllExpirations()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return expirations_.items();
+}
+
+void Database::restoreKey(const std::string& key, const std::string& value)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    data_.insert(key, value);
+}
+
+void Database::restoreExpiration(const std::string& key, const std::chrono::system_clock::time_point& expiry)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    expirations_.insert(key, expiry);
+}
+
+bool Database::getExpiration(const std::string& key, std::chrono::system_clock::time_point& expiry)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto value = expirations_.find(key);
+    if (!value)
+    {
+        return false;
+    }
+    expiry = *value;
+    return true;
 }

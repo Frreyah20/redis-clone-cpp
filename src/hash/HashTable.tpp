@@ -180,3 +180,20 @@ std::vector<K> HashTable<K, V>::keys() const
 
     return result;
 }
+
+template<typename K, typename V>
+std::vector<std::pair<K,V>> HashTable<K,V>::items() const
+{
+    std::vector<std::pair<K,V>> result;
+    for(Node* head : buckets_)
+    {
+        Node* current = head;
+        while(current)
+        {
+            result.push_back({current->key, current->value});
+            current = current->next;
+        }
+    }
+    return result;
+}
+

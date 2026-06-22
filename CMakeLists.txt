@@ -12,4 +12,5 @@ add_executable(redis_clone
     src/database/Database.cpp
     src/parser/CommandParser.cpp
     src/client/ClientHandler.cpp
+    src/persistence/PersistenceManager.cpp
 )

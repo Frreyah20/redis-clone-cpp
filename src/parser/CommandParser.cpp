@@ -1,9 +1,12 @@
 #include "CommandParser.h"
 #include "../database/Database.h"
+#include "../persistence/PersistenceManager.h"
 
 #include <sstream>
 
-std::string CommandParser::execute(const std::string& command, Database& db)
+class PersistenceManager;
+
+std::string CommandParser::execute(const std::string& command, Database& db, PersistenceManager& persistence)
 {
     std::stringstream ss(command);
     std::string cmd;
@@ -66,5 +69,10 @@ std::string CommandParser::execute(const std::string& command, Database& db)
         ss >> key;
         return std::to_string(db.ttl(key)) + "\n";
     }
+    else if(cmd == "SAVE")
+    {
+        bool success = persistence.saveSnapshot(db, "snapshot.rdb");
+        return success ? "OK\n" : "ERROR: Save failed\n";
+    }  
     return "ERROR: Unknown command\n";
-}
+} 
