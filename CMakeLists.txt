@@ -15,6 +15,8 @@ add_executable(redis_clone
     src/persistence/PersistenceManager.cpp
     src/threadpool/ThreadPool.cpp
     src/lru/LRUCache.cpp
+    src/resp/RespParser.cpp
+    src/resp/RespSerializer.cpp
 )
 add_executable(
     benchmark
