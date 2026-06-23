@@ -6,6 +6,16 @@ This project implements many of the core systems that power high-performance dat
 
 ---
 
+### Highlights
+
+- Custom hash table implementation (no std::unordered_map)
+- Redis Serialization Protocol (RESP) support
+- Compatible with redis-cli
+- Snapshot persistence and recovery
+- Thread-pool based concurrent request processing
+- Automated unit testing with GoogleTest
+- 9 automated unit tests covering database, persistence, and command parsing
+
 ## Features
 
 ### Networking & Command Processing
@@ -123,6 +133,10 @@ OK
 ```
 
 The RESP implementation enables external Redis-compatible clients to communicate with the server without requiring a custom client application.
+Verified using:
+
+* redis-cli
+* redis-benchmark
 
 
 ---
@@ -226,11 +240,64 @@ OK
 ### Key Findings
 
 * Throughput scaled significantly with increased worker pool size.
-* The system achieved over **128k requests/second** under concurrent workloads.
+* The custom benchmark suite measured over 128k requests/second under synthetic concurrent workloads.
+* RESP support enables interoperability with standard Redis tooling such as redis-cli.
 * Benchmarking identified worker pool capacity as a major scalability bottleneck.
 * Performance analysis was conducted using a custom benchmark suite.
 
 Detailed results are available in `BENCHMARK.md`.
+
+---
+
+## Benchmark Comparison
+
+Benchmarks were performed on the same machine using redis-benchmark.
+
+| System | Operation | Throughput |
+|----------|----------|----------|
+| Redis Clone | PING_MBULK | ~12.3k req/s |
+| Redis 8.0.5 | PING_MBULK | ~95.2k req/s |
+
+### Observations
+
+* The custom implementation achieves approximately 13% of Redis throughput.
+* Redis benefits from highly optimized event-driven networking and memory management.
+* The comparison highlights the performance impact of architectural choices such as thread pools versus event-driven I/O.
+
+---
+
+## Testing
+
+The project includes automated unit tests using GoogleTest.
+
+Current test coverage includes:
+
+- SET / GET operations
+- Key existence checks
+- Key deletion semantics
+- TTL expiration handling
+- Snapshot persistence and recovery
+
+Run tests:
+
+```bash
+cd build
+ctest
+```
+
+Current test suite:
+
+- DatabaseTest.SetAndGet
+- DatabaseTest.Exists
+- DatabaseTest.DeleteKey
+- DatabaseTest.ExpireKey
+- DatabaseTest.TTLExpiration
+- PersistenceTest.SaveAndLoadSnapshot
+- CommandParserTest.Ping
+- CommandParserTest.SetCommand
+- CommandParserTest.GetCommand
+
+Framework: GoogleTest
 
 ---
 
@@ -270,18 +337,20 @@ make
 ```text
 redis_clone/
 ├── src/
+│   ├── benchmark/
 │   ├── client/
 │   ├── database/
 │   ├── hash/
 │   ├── lru/
 │   ├── parser/
 │   ├── persistence/
+│   ├── resp/
 │   ├── server/
-│   ├── threadpool/
-│   └── benchmark/
-├── CMakeLists.txt
+│   └── threadpool/
+├── tests/
+├── BENCHMARK.md
 ├── README.md
-└── BENCHMARK.md
+└── CMakeLists.txt
 ```
 
 ---
@@ -307,12 +376,11 @@ redis_clone/
 
 ## Future Improvements
 
-* RESP protocol compatibility
-* Incremental persistence
+* Event-driven networking using epoll
+* Incremental persistence and append-only logging
 * Replication support
 * Publish/Subscribe messaging
-* Event-driven networking using epoll
-* Clustered deployment
+* Additional Redis data structures (Lists, Hashes, Sets)
 
 ---
 

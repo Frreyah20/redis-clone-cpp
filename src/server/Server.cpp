@@ -41,7 +41,7 @@ void Server::start()
     sockaddr_in address{};
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(6379);
+    address.sin_port = htons(6380);
     if (bind(server_fd, (sockaddr*)&address,sizeof(address)) < 0)
     {
         std::cerr << "Bind failed\n";
@@ -52,7 +52,7 @@ void Server::start()
         std::cerr << "Listen failed\n";
         return;
     }
-    std::cout << "Server listening on port 6379\n";
+    std::cout << "Server listening on port 6380\n";
     while (true)
     {
         sockaddr_in client_addr{};

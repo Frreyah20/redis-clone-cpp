@@ -20,6 +20,22 @@ Benchmarks were executed on the local machine using a custom benchmark client th
 
 # Single Client Performance
 
+## Benchmark Methodology
+
+Benchmarks were executed on Linux using:
+
+- Custom benchmark client
+- Persistent TCP connections
+- Fixed request counts
+- Multiple worker thread configurations
+- Throughput and latency measurements
+
+Metrics reported:
+
+- Requests per second (Throughput)
+- Average latency
+- Scalability under concurrent client workloads
+
 ## PING Throughput
 
 | Requests | Time (ms) | Throughput   |
@@ -96,16 +112,35 @@ The system scaled to over 128k requests/sec under 100 concurrent clients.
 
 ---
 
+# Comparison with Redis
+
+To provide a reference point, the Redis Clone was also evaluated using redis-benchmark and compared against Redis 8.0.5 on the same machine.
+
+| System | Operation | Throughput |
+|----------|----------|----------|
+| Redis Clone | PING_MBULK | ~12.3k req/s |
+| Redis 8.0.5 | PING_MBULK | ~95.2k req/s |
+
+### Observations
+
+* The Redis Clone achieved approximately 13% of Redis throughput on this workload.
+* Redis benefits from highly optimized event-driven networking and memory management.
+* The comparison highlights the performance impact of architectural decisions such as thread pools versus event-driven I/O.
+
 # Conclusion
 
-The Redis Clone demonstrates the successful implementation of several core systems programming concepts:
+The Redis Clone demonstrates the implementation of several core systems programming concepts:
 
 * Network programming with BSD sockets
 * Custom hash table design
 * Background expiration processing
-* Persistence through snapshotting
-* Thread pool based concurrency
+* Snapshot-based persistence
+* Thread-pool based concurrency
 * LRU cache eviction
+* Protocol design using RESP
+* Automated testing with GoogleTest
 * Performance benchmarking and scalability analysis
 
-The final implementation achieved over 128k requests per second under concurrent workloads while maintaining low request latency and stable scaling characteristics.
+Benchmarking showed that throughput scaled significantly with increased worker thread counts, reaching over 128k requests/sec under synthetic concurrent workloads.
+
+Comparisons against Redis highlighted the performance trade-offs between a thread-pool architecture and highly optimized event-driven systems, providing practical insight into real-world database design.
