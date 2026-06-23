@@ -8,6 +8,7 @@
 #include <string>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <sstream>
 
 
 void ClientHandler::handleClient(int client_fd,Database& db,CommandParser& parser,PersistenceManager& persistence)
@@ -24,9 +25,6 @@ void ClientHandler::handleClient(int client_fd,Database& db,CommandParser& parse
 
         buffer[bytes_received] = '\0';
         std::string request = buffer;
-        std::cout << "REQUEST RECEIVED:\n";
-        std::cout << request << "\n";
-        std::cout << "END REQUEST\n";
         std::string response;
         try
         {
@@ -78,7 +76,23 @@ void ClientHandler::handleClient(int client_fd,Database& db,CommandParser& parse
             }
             else
             {
-                response = parser.execute(request, db, persistence);
+                std::string plainResponse =
+                    parser.execute(request, db, persistence);
+
+                    std::string command;
+
+                    std::stringstream ss(request);
+                    ss >> command;
+
+                    if(command == "PING")
+                    {
+                        response =
+                            RespSerializer::simpleString("PONG");
+                    }
+                    else
+                    {
+                        response = plainResponse;
+                    }
             }
         }
         catch(const std::exception& e)
