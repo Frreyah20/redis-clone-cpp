@@ -1,6 +1,6 @@
 # Redis Clone (C++)
 
-A Redis-inspired in-memory key-value database built from scratch in modern C++.
+A Redis-compatible in-memory key-value database built from scratch in C++, featuring custom storage, TTL expiration, persistence, concurrent request handling, LRU caching, and RESP protocol support.
 
 This project implements many of the core systems that power high-performance databases and caches, including a custom hash table, key expiration engine, persistence layer, thread-pool based concurrency, LRU eviction, and performance benchmarking. The goal was to explore database internals, networking, concurrent programming, and systems design through a ground-up implementation.
 
@@ -87,6 +87,43 @@ Features:
 * Latency analysis
 * Multi-client scalability testing
 * Performance comparison across thread pool configurations
+
+## RESP Protocol Support
+
+The server implements the Redis Serialization Protocol (RESP), allowing interoperability with standard Redis client tools.
+
+Supported RESP commands:
+
+* PING
+* SET
+* GET
+* DEL
+* EXISTS
+* EXPIRE
+* TTL
+
+Example usage with redis-cli:
+
+```bash
+redis-cli -p 6379
+```
+
+```redis
+127.0.0.1:6379> SET name frreyah
+OK
+
+127.0.0.1:6379> GET name
+"frreyah"
+
+127.0.0.1:6379> EXISTS name
+(integer) 1
+
+127.0.0.1:6379> TTL name
+(integer) -1
+```
+
+The RESP implementation enables external Redis-compatible clients to communicate with the server without requiring a custom client application.
+
 
 ---
 
